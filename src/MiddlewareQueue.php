@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Apine\Dispatcher;
 
+use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -25,17 +26,17 @@ class MiddlewareQueue implements RequestHandlerInterface
      * @var bool
      */
     private $locked = false;
-    
+
     /**
      * @var MiddlewareInterface[]
      */
     private $queue = [];
-    
+
     /**
      * @var RequestHandlerInterface
      */
     private $fallback;
-    
+
     /**
      * Queue constructor.
      *
@@ -44,13 +45,21 @@ class MiddlewareQueue implements RequestHandlerInterface
      */
     public function __construct(RequestHandlerInterface $fallback, array $middlewares = [])
     {
+        if (is_null($fallback)) {
+            throw new InvalidArgumentException("Fallback must be set to an implementation of RequestHandlerInterface");
+        }
+
         $this->fallback = $fallback;
-    
+
         foreach ($middlewares as $middleware) {
+            if (!$middleware instanceof MiddlewareInterface) {
+                throw new InvalidArgumentException("Array must only contain implementations of MiddlewareInterface");
+            }
+
             $this->queue[] = $middleware;
         }
     }
-    
+
     /**
      * @param MiddlewareInterface[] $middlewares
      * @throws MiddlewareQueueException
@@ -60,12 +69,12 @@ class MiddlewareQueue implements RequestHandlerInterface
         if ($this->locked) {
             throw new MiddlewareQueueException("Cannot add middlewares once the stack is dequeueing");
         }
-    
+
         foreach ($middlewares as $middleware) {
             $this->add($middleware);
         }
     }
-    
+
     /**
      * @param MiddlewareInterface $middleware
      * @throws MiddlewareQueueException
@@ -75,10 +84,10 @@ class MiddlewareQueue implements RequestHandlerInterface
         if ($this->locked) {
             throw new MiddlewareQueueException("Cannot add middleware once the stack is dequeueing");
         }
-        
+
         $this->queue[] = $middleware;
     }
-    
+
     /**
      * Handle the request and return a response.
      *
@@ -89,11 +98,11 @@ class MiddlewareQueue implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $this->locked = true;
-    
-        if (0 === count($this->queue)) {
+
+        if (count($this->queue) === 0) {
             return $this->fallback->handle($request);
         }
-    
+
         $middleware = array_shift($this->queue);
         return $middleware->process($request, $this);
     }

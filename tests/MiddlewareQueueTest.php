@@ -5,8 +5,10 @@
  * @license MIT
  * @copyright 2018 Tommy Teasdale
  */
-declare(strict_types=1);
 
+/** @noinspection PhpParamsInspection */
+
+declare(strict_types=1);
 
 use Apine\Dispatcher\MiddlewareQueue;
 use PHPUnit\Framework\TestCase;
@@ -17,6 +19,10 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class MiddlewareQueueTest extends TestCase
 {
+    /**
+     * @return MiddlewareQueue
+     * @throws ReflectionException
+     */
     public function testConstructor() : MiddlewareQueue
     {
         $mockHandler = $this->getMockBuilder(RequestHandlerInterface::class)
@@ -24,7 +30,7 @@ class MiddlewareQueueTest extends TestCase
             ->getMock();
     
         $mockHandler->method('handle')->willReturn($this->createMock(ResponseInterface::class));
-    
+
         $dispatcher = new MiddlewareQueue($mockHandler);
     
         $this->assertAttributeEquals(false, 'locked', $dispatcher);
@@ -33,7 +39,11 @@ class MiddlewareQueueTest extends TestCase
     
         return $dispatcher;
     }
-    
+
+    /**
+     * @return MiddlewareQueue
+     * @throws ReflectionException
+     */
     public function testConstructorWithQueue() : MiddlewareQueue
     {
         $mockHandler = $this->getMockBuilder(RequestHandlerInterface::class)
@@ -53,9 +63,12 @@ class MiddlewareQueueTest extends TestCase
         
         return $dispatcher;
     }
-    
+
     /**
      * @depends testConstructor
+     * @param MiddlewareQueue $dispatcher
+     * @throws ReflectionException
+     * @throws \Apine\Dispatcher\MiddlewareQueueException
      */
     public function testAdd(MiddlewareQueue $dispatcher)
     {
@@ -70,9 +83,12 @@ class MiddlewareQueueTest extends TestCase
         $dispatcher->add($mockMiddleware);
         $this->assertAttributeNotEmpty('queue', $dispatcher);
     }
-    
+
     /**
      * @depends testConstructor
+     * @param MiddlewareQueue $dispatcher
+     * @throws ReflectionException
+     * @throws \Apine\Dispatcher\MiddlewareQueueException
      */
     public function testSeedQueue(MiddlewareQueue $dispatcher)
     {
@@ -87,10 +103,13 @@ class MiddlewareQueueTest extends TestCase
         $dispatcher->seedQueue([$mockMiddleware]);
         $this->assertAttributeNotEmpty('queue', $dispatcher);
     }
-    
+
     /**
      * @depends testConstructor
-     * @expectedException \Apine\Core\Dispatcher\MiddlewareQueueException
+     * @expectedException \Apine\Dispatcher\MiddlewareQueueException
+     * @param MiddlewareQueue $dispatcher
+     * @throws ReflectionException
+     * @throws \Apine\Dispatcher\MiddlewareQueueException
      */
     public function testAddWhenQueueLocked(MiddlewareQueue $dispatcher)
     {
@@ -101,12 +120,15 @@ class MiddlewareQueueTest extends TestCase
             ->setMethods(['process'])
             ->getMock();
         
-        $newDispatcher = $dispatcher->add($mockMiddleware);
+        $dispatcher->add($mockMiddleware);
     }
-    
+
     /**
      * @depends testConstructor
-     * @expectedException \Apine\Core\Dispatcher\MiddlewareQueueException
+     * @expectedException \Apine\Dispatcher\MiddlewareQueueException
+     * @param MiddlewareQueue $dispatcher
+     * @throws ReflectionException
+     * @throws \Apine\Dispatcher\MiddlewareQueueException
      */
     public function testWithMiddlewareQueueWhenQueueLocked(MiddlewareQueue $dispatcher)
     {
@@ -117,11 +139,13 @@ class MiddlewareQueueTest extends TestCase
             ->setMethods(['process'])
             ->getMock();
         
-        $newDispatcher = $dispatcher->seedQueue([$mockMiddleware]);
+        $dispatcher->seedQueue([$mockMiddleware]);
     }
-    
+
     /**
      * @depends testConstructorWithQueue
+     * @param MiddlewareQueue $dispatcher
+     * @throws ReflectionException
      */
     public function testHandle(MiddlewareQueue $dispatcher)
     {
@@ -131,9 +155,11 @@ class MiddlewareQueueTest extends TestCase
     
         $this->assertInstanceOf(ResponseInterface::class, $response);
     }
-    
+
     /**
      * @depends testConstructor
+     * @param MiddlewareQueue $dispatcher
+     * @throws ReflectionException
      */
     public function testHandleWhenQueueEmpty(MiddlewareQueue $dispatcher)
     {

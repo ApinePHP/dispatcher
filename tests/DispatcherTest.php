@@ -5,11 +5,13 @@
  * @license MIT
  * @copyright 2018 Tommy Teasdale
  */
+
+/** @noinspection PhpUnusedLocalVariableInspection */
+/** @noinspection PhpParamsInspection */
+
 declare(strict_types=1);
 
-
 use Apine\Dispatcher\Dispatcher;
-use Apine\Dispatcher\MiddlewareQueueException;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -18,8 +20,10 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class DispatcherTest extends TestCase
 {
-    
-    
+    /**
+     * @return Dispatcher
+     * @throws ReflectionException
+     */
     public function testConstructor() : Dispatcher
     {
         $mockHandler = $this->getMockBuilder(RequestHandlerInterface::class)
@@ -35,9 +39,12 @@ class DispatcherTest extends TestCase
         
         return $dispatcher;
     }
-    
+
     /**
      * @depends testConstructor
+     * @param Dispatcher $dispatcher
+     * @throws ReflectionException
+     * @throws \Apine\Dispatcher\MiddlewareQueueException
      */
     public function testWithMiddleware(Dispatcher $dispatcher)
     {
@@ -53,9 +60,12 @@ class DispatcherTest extends TestCase
         $this->assertAttributeEmpty('queue', $dispatcher);
         $this->assertAttributeNotEmpty('queue', $newDispatcher);
     }
-    
+
     /**
      * @depends testConstructor
+     * @param Dispatcher $dispatcher
+     * @throws ReflectionException
+     * @throws \Apine\Dispatcher\MiddlewareQueueException
      */
     public function testWithMiddlewareQueue(Dispatcher $dispatcher)
     {
@@ -71,10 +81,13 @@ class DispatcherTest extends TestCase
         $this->assertAttributeEmpty('queue', $dispatcher);
         $this->assertAttributeNotEmpty('queue', $newDispatcher);
     }
-    
+
     /**
      * @depends testConstructor
-     * @expectedException \Apine\Core\Dispatcher\MiddlewareQueueException
+     * @expectedException \Apine\Dispatcher\MiddlewareQueueException
+     * @param Dispatcher $dispatcher
+     * @throws ReflectionException
+     * @throws \Apine\Dispatcher\MiddlewareQueueException
      */
     public function testWithMiddlewareWhenQueueLocked(Dispatcher $dispatcher)
     {
@@ -86,10 +99,13 @@ class DispatcherTest extends TestCase
     
         $newDispatcher = $dispatcher->withMiddleware($mockMiddleware);
     }
-    
+
     /**
      * @depends testConstructor
-     * @expectedException \Apine\Core\Dispatcher\MiddlewareQueueException
+     * @expectedException \Apine\Dispatcher\MiddlewareQueueException
+     * @param Dispatcher $dispatcher
+     * @throws ReflectionException
+     * @throws \Apine\Dispatcher\MiddlewareQueueException
      */
     public function testWithMiddlewareQueueWhenQueueLocked(Dispatcher $dispatcher)
     {
@@ -101,9 +117,12 @@ class DispatcherTest extends TestCase
         
         $newDispatcher = $dispatcher->withMiddlewareQueue([$mockMiddleware]);
     }
-    
+
     /**
      * @depends testConstructor
+     * @param Dispatcher $dispatcher
+     * @throws ReflectionException
+     * @throws \Apine\Dispatcher\MiddlewareQueueException
      */
     public function testHandle(Dispatcher $dispatcher)
     {
@@ -120,9 +139,11 @@ class DispatcherTest extends TestCase
         
         $this->assertInstanceOf(ResponseInterface::class, $response);
     }
-    
+
     /**
      * @depends testConstructor
+     * @param Dispatcher $dispatcher
+     * @throws ReflectionException
      */
     public function testHandleWhenQueueEmpty(Dispatcher $dispatcher)
     {

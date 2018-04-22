@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Apine\Dispatcher;
 
+use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -44,6 +45,10 @@ class Dispatcher implements RequestHandlerInterface
      */
     public function __construct(RequestHandlerInterface $fallback)
     {
+        if (is_null($fallback)) {
+            throw new InvalidArgumentException("Fallback must be set to an implementation of RequestHandlerInterface");
+        }
+
         $this->fallback = $fallback;
     }
     
@@ -95,7 +100,7 @@ class Dispatcher implements RequestHandlerInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        if (0 === count($this->queue)) {
+        if (count($this->queue) === 0) {
             return $this->fallback->handle($request);
         }
         
