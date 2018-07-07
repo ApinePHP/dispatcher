@@ -9,11 +9,11 @@ declare(strict_types=1);
 
 namespace Apine\Dispatcher;
 
-use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Server\MiddlewareInterface;
+use function count;
 
 
 /**
@@ -45,10 +45,6 @@ class Dispatcher implements RequestHandlerInterface
      */
     public function __construct(RequestHandlerInterface $fallback)
     {
-        if (is_null($fallback)) {
-            throw new InvalidArgumentException("Fallback must be set to an implementation of RequestHandlerInterface");
-        }
-
         $this->fallback = $fallback;
     }
     
@@ -58,10 +54,10 @@ class Dispatcher implements RequestHandlerInterface
      * @return Dispatcher
      * @throws MiddlewareQueueException
      */
-    public function withMiddlewareQueue(array $middlewares) : self
+    public function withMiddlewareQueue(array $middlewares): self
     {
         if ($this->locked) {
-            throw new MiddlewareQueueException("Cannot add middlewares once the stack is dequeueing");
+            throw new MiddlewareQueueException('Cannot add middlewares once the stack is dequeueing');
         }
         
         $clone = clone $this;
@@ -79,10 +75,10 @@ class Dispatcher implements RequestHandlerInterface
      * @return Dispatcher
      * @throws MiddlewareQueueException
      */
-    public function withMiddleware(MiddlewareInterface $middleware) : self
+    public function withMiddleware(MiddlewareInterface $middleware): self
     {
         if ($this->locked) {
-            throw new MiddlewareQueueException("Cannot add middleware once the stack is dequeueing");
+            throw new MiddlewareQueueException('Cannot add middleware once the stack is dequeueing');
         }
         
         $clone = clone $this;
@@ -107,6 +103,7 @@ class Dispatcher implements RequestHandlerInterface
         $dispatcher = clone $this;
         $dispatcher->locked = true;
         $middleware = array_shift($dispatcher->queue);
+        
         return $middleware->process($request, $dispatcher);
     }
 }

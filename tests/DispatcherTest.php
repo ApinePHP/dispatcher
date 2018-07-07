@@ -22,7 +22,6 @@ class DispatcherTest extends TestCase
 {
     /**
      * @return Dispatcher
-     * @throws ReflectionException
      */
     public function testConstructor() : Dispatcher
     {
@@ -43,10 +42,9 @@ class DispatcherTest extends TestCase
     /**
      * @depends testConstructor
      * @param Dispatcher $dispatcher
-     * @throws ReflectionException
      * @throws \Apine\Dispatcher\MiddlewareQueueException
      */
-    public function testWithMiddleware(Dispatcher $dispatcher)
+    public function testWithMiddleware(Dispatcher $dispatcher): void
     {
         $mockMiddleware = $this->getMockBuilder(MiddlewareInterface::class)
             ->setMethods(['process'])
@@ -64,10 +62,9 @@ class DispatcherTest extends TestCase
     /**
      * @depends testConstructor
      * @param Dispatcher $dispatcher
-     * @throws ReflectionException
      * @throws \Apine\Dispatcher\MiddlewareQueueException
      */
-    public function testWithMiddlewareQueue(Dispatcher $dispatcher)
+    public function testWithMiddlewareQueue(Dispatcher $dispatcher): void
     {
         $mockMiddleware = $this->getMockBuilder(MiddlewareInterface::class)
             ->setMethods(['process'])
@@ -89,7 +86,7 @@ class DispatcherTest extends TestCase
      * @throws ReflectionException
      * @throws \Apine\Dispatcher\MiddlewareQueueException
      */
-    public function testWithMiddlewareWhenQueueLocked(Dispatcher $dispatcher)
+    public function testWithMiddlewareWhenQueueLocked(Dispatcher $dispatcher): void
     {
         $this->setProtectedProperty($dispatcher, 'locked', true);
         
@@ -107,7 +104,7 @@ class DispatcherTest extends TestCase
      * @throws ReflectionException
      * @throws \Apine\Dispatcher\MiddlewareQueueException
      */
-    public function testWithMiddlewareQueueWhenQueueLocked(Dispatcher $dispatcher)
+    public function testWithMiddlewareQueueWhenQueueLocked(Dispatcher $dispatcher): void
     {
         $this->setProtectedProperty($dispatcher, 'locked', true);
         
@@ -124,7 +121,7 @@ class DispatcherTest extends TestCase
      * @throws ReflectionException
      * @throws \Apine\Dispatcher\MiddlewareQueueException
      */
-    public function testHandle(Dispatcher $dispatcher)
+    public function testHandle(Dispatcher $dispatcher): void
     {
         $this->setProtectedProperty($dispatcher, 'locked', false);
         $mockRequest = $this->getMockForAbstractClass(ServerRequestInterface::class);
@@ -145,7 +142,7 @@ class DispatcherTest extends TestCase
      * @param Dispatcher $dispatcher
      * @throws ReflectionException
      */
-    public function testHandleWhenQueueEmpty(Dispatcher $dispatcher)
+    public function testHandleWhenQueueEmpty(Dispatcher $dispatcher): void
     {
         $mockRequest = $this->getMockForAbstractClass(ServerRequestInterface::class);
         $response = $dispatcher->handle($mockRequest);
@@ -162,7 +159,7 @@ class DispatcherTest extends TestCase
      * @return void
      * @throws \ReflectionException
      */
-    public function setProtectedProperty($object, $property, $value)
+    public function setProtectedProperty($object, $property, $value): void
     {
         $reflection = new ReflectionClass($object);
         $reflection_property = $reflection->getProperty($property);
