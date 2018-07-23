@@ -10,8 +10,6 @@ declare(strict_types=1);
 namespace Apine\Dispatcher;
 
 use InvalidArgumentException;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use function count;
@@ -21,7 +19,7 @@ use function count;
  *
  * @package Apine\Core\Middlewares
  */
-class MiddlewareQueue implements RequestHandlerInterface
+class MiddlewareQueue
 {
     /**
      * @var bool
@@ -34,19 +32,13 @@ class MiddlewareQueue implements RequestHandlerInterface
     private $queue = [];
     
     /**
-     * @var RequestHandlerInterface
-     */
-    private $fallback;
-    
-    /**
      * Queue constructor.
      *
      * @param RequestHandlerInterface $fallback
      * @param MiddlewareInterface[]   $middlewares
      */
-    public function __construct(RequestHandlerInterface $fallback, array $middlewares = [])
+    public function __construct(array $middlewares = [])
     {
-        $this->fallback = $fallback;
         
         foreach ($middlewares as $middleware) {
             if (!$middleware instanceof MiddlewareInterface) {
@@ -74,6 +66,14 @@ class MiddlewareQueue implements RequestHandlerInterface
     }
     
     /**
+     * @return array
+     */
+    public function getQueue(): array
+    {
+        return $this->queue;
+    }
+    
+    /**
      * @param MiddlewareInterface $middleware
      *
      * @throws MiddlewareQueueException
@@ -88,22 +88,16 @@ class MiddlewareQueue implements RequestHandlerInterface
     }
     
     /**
-     * Handle the request and return a response.
-     *
-     * @param ServerRequestInterface $request
-     *
-     * @return ResponseInterface
+     * @return null|MiddlewareInterface
      */
-    public function handle(ServerRequestInterface $request): ResponseInterface
+    public function next(): ?MiddlewareInterface
     {
         $this->locked = true;
         
         if (count($this->queue) === 0) {
-            return $this->fallback->handle($request);
+            return null;
         }
         
-        $middleware = array_shift($this->queue);
-        
-        return $middleware->process($request, $this);
+        return array_shift($this->queue);
     }
 }

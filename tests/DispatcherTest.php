@@ -55,8 +55,8 @@ class DispatcherTest extends TestCase
         $newDispatcher = $dispatcher->withMiddleware($mockMiddleware);
         
         $this->assertInstanceOf(Dispatcher::class, $newDispatcher);
-        $this->assertAttributeEmpty('queue', $dispatcher);
-        $this->assertAttributeNotEmpty('queue', $newDispatcher);
+        $this->assertAttributeEmpty('queue', $this->getObjectAttribute($dispatcher, 'queue'));
+        $this->assertAttributeNotEmpty('queue', $this->getObjectAttribute($newDispatcher, 'queue'));
     }
 
     /**
@@ -75,8 +75,8 @@ class DispatcherTest extends TestCase
         $newDispatcher = $dispatcher->withMiddlewareQueue([$mockMiddleware]);
     
         $this->assertInstanceOf(Dispatcher::class, $newDispatcher);
-        $this->assertAttributeEmpty('queue', $dispatcher);
-        $this->assertAttributeNotEmpty('queue', $newDispatcher);
+        $this->assertAttributeEmpty('queue', $this->getObjectAttribute($dispatcher, 'queue'));
+        $this->assertAttributeNotEmpty('queue', $this->getObjectAttribute($newDispatcher, 'queue'));
     }
 
     /**

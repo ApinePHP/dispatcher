@@ -13,7 +13,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Server\MiddlewareInterface;
-use function count;
 
 
 /**
@@ -24,9 +23,9 @@ use function count;
 class Dispatcher implements RequestHandlerInterface
 {
     /**
-     * @var MiddlewareInterface[]
+     * @var MiddlewareQueue
      */
-    private $queue = [];
+    private $queue;
     
     /**
      * @var RequestHandlerInterface
@@ -46,6 +45,7 @@ class Dispatcher implements RequestHandlerInterface
     public function __construct(RequestHandlerInterface $fallback)
     {
         $this->fallback = $fallback;
+        $this->queue = new MiddlewareQueue();
     }
     
     /**
@@ -81,8 +81,11 @@ class Dispatcher implements RequestHandlerInterface
             throw new MiddlewareQueueException('Cannot add middleware once the stack is dequeueing');
         }
         
+        $cloneQueue = clone $this->queue;
+        $cloneQueue->add($middleware);
+    
         $clone = clone $this;
-        $clone->queue[] = $middleware;
+        $clone->queue = $cloneQueue;
         
         return $clone;
     }
@@ -96,13 +99,13 @@ class Dispatcher implements RequestHandlerInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        if (count($this->queue) === 0) {
-            return $this->fallback->handle($request);
-        }
-        
         $dispatcher = clone $this;
         $dispatcher->locked = true;
-        $middleware = array_shift($dispatcher->queue);
+        $middleware = $dispatcher->queue->next();
+        
+        if (null === $middleware) {
+            return $this->fallback->handle($request);
+        }
         
         return $middleware->process($request, $dispatcher);
     }

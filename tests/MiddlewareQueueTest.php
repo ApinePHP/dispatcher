@@ -13,9 +13,7 @@ declare(strict_types=1);
 use Apine\Dispatcher\MiddlewareQueue;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
 class MiddlewareQueueTest extends TestCase
 {
@@ -24,16 +22,9 @@ class MiddlewareQueueTest extends TestCase
      */
     public function testConstructor() : MiddlewareQueue
     {
-        $mockHandler = $this->getMockBuilder(RequestHandlerInterface::class)
-            ->setMethods(['handle'])
-            ->getMock();
-    
-        $mockHandler->method('handle')->willReturn($this->createMock(ResponseInterface::class));
-
-        $dispatcher = new MiddlewareQueue($mockHandler);
+        $dispatcher = new MiddlewareQueue();
     
         $this->assertAttributeEquals(false, 'locked', $dispatcher);
-        $this->assertAttributeNotEmpty('fallback', $dispatcher);
         $this->assertAttributeEmpty('queue', $dispatcher);
     
         return $dispatcher;
@@ -44,19 +35,13 @@ class MiddlewareQueueTest extends TestCase
      */
     public function testConstructorWithQueue() : MiddlewareQueue
     {
-        $mockHandler = $this->getMockBuilder(RequestHandlerInterface::class)
-            ->setMethods(['handle'])
-            ->getMock();
-    
-        $mockHandler->method('handle')->willReturn($this->createMock(ResponseInterface::class));
-    
         $mockMiddleware = $this->getMockBuilder(MiddlewareInterface::class)
             ->setMethods(['process'])
             ->getMock();
     
         $mockMiddleware->method('process')->willReturn($this->createMock(ResponseInterface::class));
     
-        $dispatcher = new MiddlewareQueue($mockHandler, [$mockMiddleware]);
+        $dispatcher = new MiddlewareQueue([$mockMiddleware]);
         $this->assertAttributeNotEmpty('queue', $dispatcher);
         
         return $dispatcher;
@@ -141,28 +126,24 @@ class MiddlewareQueueTest extends TestCase
     /**
      * @depends testConstructorWithQueue
      * @param MiddlewareQueue $dispatcher
-     * @throws ReflectionException
      */
-    public function testHandle(MiddlewareQueue $dispatcher): void
+    public function testNext(MiddlewareQueue $dispatcher): void
     {
         $dispatcher = clone $dispatcher;
-        $mockRequest = $this->getMockForAbstractClass(ServerRequestInterface::class);
-        $response = $dispatcher->handle($mockRequest);
+        $middleware = $dispatcher->next();
     
-        $this->assertInstanceOf(ResponseInterface::class, $response);
+        $this->assertInstanceOf(MiddlewareInterface::class, $middleware);
     }
 
     /**
      * @depends testConstructor
      * @param MiddlewareQueue $dispatcher
-     * @throws ReflectionException
      */
-    public function testHandleWhenQueueEmpty(MiddlewareQueue $dispatcher): void
+    public function testNextWhenQueueEmpty(MiddlewareQueue $dispatcher): void
     {
         $dispatcher = clone $dispatcher;
-        $mockRequest = $this->getMockForAbstractClass(ServerRequestInterface::class);
-        $response = $dispatcher->handle($mockRequest);
-        $this->assertInstanceOf(ResponseInterface::class, $response);
+        $middleware = $dispatcher->next();
+        $this->assertNull($middleware);
     }
     
     /**
